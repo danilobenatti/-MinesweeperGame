@@ -1,8 +1,5 @@
 package br.com.ecosensor.model;
 
-import static org.apache.commons.lang3.StringUtils.LF;
-import static org.apache.commons.lang3.StringUtils.SPACE;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -17,7 +14,7 @@ public class Gameboard {
 	private int columns;
 	private int mines;
 	
-	private List<Fieldboard> fields = new ArrayList<>();
+	private List<FieldOfBoard> fields = new ArrayList<>();
 	
 	public Gameboard(int lines, int columns, int mines) {
 		this.lines = lines;
@@ -50,14 +47,14 @@ public class Gameboard {
 	private void generateFields() {
 		for (int i = 0; i < lines; i++) {
 			for (int j = 0; j < columns; j++) {
-				this.fields.add(new Fieldboard(i, j));
+				this.fields.add(new FieldOfBoard(i, j));
 			}
 		}
 	}
 	
 	private void associateNeighbors() {
-		for (Fieldboard field1 : this.fields) {
-			for (Fieldboard field2 : this.fields) {
+		for (FieldOfBoard field1 : this.fields) {
+			for (FieldOfBoard field2 : this.fields) {
 				field1.addNeighbor(field2);
 			}
 		}
@@ -65,7 +62,7 @@ public class Gameboard {
 	
 	private void raffleMines() {
 		long armedMines = 0;
-		Predicate<Fieldboard> mineded = f -> f.isMineded();
+		Predicate<FieldOfBoard> mineded = f -> f.isMineded();
 		do {
 			int rand = (int) (Math.random() * this.fields.size());
 			this.fields.get(rand).undermine();
@@ -78,7 +75,7 @@ public class Gameboard {
 	}
 	
 	public void restart() {
-		this.fields.stream().forEach(c -> c.restart());
+		this.fields.stream().forEach(c -> c.restartGame());
 		raffleMines();
 	}
 	
@@ -86,25 +83,27 @@ public class Gameboard {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		
-		sb.append(SPACE + SPACE);
+		sb.append(StringUtils.SPACE);
+		sb.append(StringUtils.SPACE);
+		
 		for (int c = 0; c < this.columns; c++) {
-			sb.append(SPACE);
+			sb.append(StringUtils.SPACE);
 			sb.append(c);
-			sb.append(SPACE);
+			sb.append(StringUtils.SPACE);
 		}
 		sb.append(StringUtils.LF);
 		
 		int i = 0;
 		for (int l = 0; l < this.lines; l++) {
 			sb.append(l);
-			sb.append(SPACE);
+			sb.append(StringUtils.SPACE);
 			for (int c = 0; c < this.columns; c++) {
-				sb.append(SPACE);
+				sb.append(StringUtils.SPACE);
 				sb.append(this.fields.get(i));
-				sb.append(SPACE);
+				sb.append(StringUtils.SPACE);
 				i++;
 			}
-			sb.append(LF);
+			sb.append(StringUtils.LF);
 		}
 		return sb.toString();
 	}

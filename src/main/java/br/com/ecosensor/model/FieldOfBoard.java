@@ -5,7 +5,7 @@ import java.util.List;
 
 import br.com.ecosensor.exception.ExplosionException;
 
-public class Fieldboard {
+public class FieldOfBoard {
 	
 	private final int line;
 	private final int column;
@@ -14,14 +14,14 @@ public class Fieldboard {
 	private boolean mineded = false;
 	private boolean markned = false;
 	
-	private List<Fieldboard> neighbors = new ArrayList<>();
+	private List<FieldOfBoard> neighbors = new ArrayList<>();
 	
-	Fieldboard(int line, int column) {
+	FieldOfBoard(int line, int column) {
 		this.line = line;
 		this.column = column;
 	}
 	
-	boolean addNeighbor(Fieldboard neighbor) {
+	boolean addNeighbor(FieldOfBoard neighbor) {
 		boolean lineDifferent = this.line != neighbor.line;
 		boolean columnDifferent = this.column != neighbor.column;
 		boolean diagonal = lineDifferent && columnDifferent;
@@ -101,11 +101,11 @@ public class Fieldboard {
 		return uncovereField || protectedField;
 	}
 	
-	long minesIntoNeighbor() {
+	long neighboringMines() {
 		return this.neighbors.stream().filter(n -> n.mineded).count();
 	}
 	
-	void restart() {
+	void restartGame() {
 		this.openned = false;
 		this.mineded = false;
 		this.markned = false;
@@ -117,8 +117,8 @@ public class Fieldboard {
 			return "x";
 		} else if (this.openned && this.mineded) {
 			return "*";
-		} else if (this.openned && minesIntoNeighbor() > 0) {
-			return Long.toString(minesIntoNeighbor());
+		} else if (this.openned && neighboringMines() > 0) {
+			return Long.toString(neighboringMines());
 		} else if (this.openned) {
 			return " ";
 		} else {

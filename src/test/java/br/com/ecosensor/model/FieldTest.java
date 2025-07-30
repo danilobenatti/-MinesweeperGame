@@ -6,44 +6,45 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.api.Assertions;
 
 import br.com.ecosensor.exception.ExplosionException;
 
 class FieldTest {
 	
-	private Fieldboard field;
+	private FieldOfBoard field;
 	
 	@BeforeEach
 	void startTest() {
-		this.field = new Fieldboard(3, 3);
+		this.field = new FieldOfBoard(3, 4);
 	}
 	
 	/**
+	 * Fieldboard(line, column)
 	 * 		1	2	3	4	5
 	 * 1	F	F	F	F	F
-	 * 2	F	T	T	T	F
-	 * 3	F	T	X	T	F
-	 * 4	F	T	T	T	F
+	 * 2	F	F	T	T	T
+	 * 3	F	M	T	X	T
+	 * 4	F	M	T	T	T
 	 * 5	F	F	F	F	F
 	 * 
-	 * @param x
-	 * @param y
+	 * @param line
+	 * @param column
 	 */
 	@ParameterizedTest
 	@CsvSource(delimiter = ',',
-		value = { "2,2", "3,2", "4,2", "2,3", "4,3", "2,4", "3,4", "4,4" })
-	void isNeighborTrueTest(int x, int y) {
-		Fieldboard neighbor = new Fieldboard(x, y);
+		value = { "2,3", "2,4", "2,5", "3,3", "3,5", "4,3", "4,4", "4,5" })
+	void isNeighborTest(int line, int column) {
+		FieldOfBoard neighbor = new FieldOfBoard(line, column);
 		boolean result = this.field.addNeighbor(neighbor);
 		assertTrue(result);
 	}
 	
 	@ParameterizedTest
-	@CsvSource(delimiter = ',', value = { "1,1", "1,2", "1,3", "1,4", "1,5",
-			"2,1", "3,1", "4,1", "5,1", "5,2", "5,3", "5,4", "5,5" })
-	void isNeighborFalseTest(int x, int y) {
-		Fieldboard neighbor = new Fieldboard(x, y);
+	@CsvSource(delimiter = ',',
+		value = { "1,1", "1,2", "1,3", "1,4", "1,5", "2,1", "2,2", "3,1",
+				"3,2", "4,1", "4,2", "5,1", "5,2", "5,3", "5,4", "5,5" })
+	void notNeighborTest(int line, int column) {
+		FieldOfBoard neighbor = new FieldOfBoard(line, column);
 		boolean result = this.field.addNeighbor(neighbor);
 		assertFalse(result);
 	}
@@ -87,15 +88,13 @@ class FieldTest {
 	@Test
 	void toggleTagMinedUnmarked() {
 		this.field.undermine();
-		Assertions.assertThrows(ExplosionException.class, () -> {
-			this.field.open();
-		});
+		assertThrows(ExplosionException.class, field::open);
 	}
 	
 	@Test
 	void toggleTagWithNeighbor1() {
-		Fieldboard neighbor1 = new Fieldboard(1, 1);
-		Fieldboard neighbor2 = new Fieldboard(2, 2);
+		FieldOfBoard neighbor1 = new FieldOfBoard(1, 2);
+		FieldOfBoard neighbor2 = new FieldOfBoard(2, 3);
 		
 		neighbor2.addNeighbor(neighbor1);
 		
@@ -103,24 +102,54 @@ class FieldTest {
 		
 		field.open();
 		
-		assertTrue(neighbor2.isOpen() && neighbor1.isOpen());
+		assertTrue(neighbor1.isOpen() && neighbor2.isOpen());
 	}
 	
 	@Test
 	void toggleTagWithNeighbor2() {
-		Fieldboard neighbor1 = new Fieldboard(1, 1);
-		Fieldboard neighbor12 = new Fieldboard(1, 2);
-		neighbor12.undermine();
-		Fieldboard neighbor2 = new Fieldboard(2, 2);
+		FieldOfBoard neighbor1 = new FieldOfBoard(1, 1);
+		FieldOfBoard neighbor2 = new FieldOfBoard(1, 2);
+		neighbor2.undermine();
+		FieldOfBoard neighbor3 = new FieldOfBoard(2, 3);
 		
-		neighbor2.addNeighbor(neighbor1);
-		neighbor2.addNeighbor(neighbor12);
+		neighbor3.addNeighbor(neighbor1);
+		neighbor3.addNeighbor(neighbor2);
 		
-		field.addNeighbor(neighbor2);
+		field.addNeighbor(neighbor3);
 		
 		field.open();
 		
-		assertTrue(neighbor2.isOpen() && neighbor1.isClose());
+		assertTrue(neighbor3.isOpen() && neighbor1.isClose());
 	}
 	
+	@Test
+	void NeighborMineTest() {
+		FieldOfBoard neighbor0 = new FieldOfBoard(2, 3);
+		FieldOfBoard neighbor1 = new FieldOfBoard(3, 3);
+		FieldOfBoard neighbor2 = new FieldOfBoard(3, 2);
+		FieldOfBoard neighbor3 = new FieldOfBoard(4, 2);
+		
+		neighbor2.undermine();
+		neighbor3.undermine();
+		
+		
+		neighbor0.addNeighbor(neighbor2);
+		neighbor1.addNeighbor(neighbor2);
+		neighbor1.addNeighbor(neighbor3);
+		
+		assertEquals(1, neighbor0.neighboringMines());
+		assertEquals(2, neighbor1.neighboringMines());
+	}
+	
+	@Test
+	void ToStringTest() {
+		FieldOfBoard neighbor = new FieldOfBoard(3, 2);
+		neighbor.undermine();
+		
+		assertEquals("?", neighbor.toString());
+		
+		neighbor.setOpenned(true);
+		
+		assertEquals("*", neighbor.toString());
+	}
 }
